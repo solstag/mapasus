@@ -23,7 +23,8 @@ function mapasus_init($a){
   if (! ($a->account['account_service_class'] === 'ppsus') )
     return;
 
-  $uid=local_channel();
+  // uid of comunicamboi at mobiliza.org.br
+  $uid=106;
 
   if(argc()==1)
     return;
@@ -58,16 +59,15 @@ function mapasus_content($a){
   if(! ($a->account['account_service_class'] === 'ppsus') )
     return;
 
-  //TODO: servir o leaflet localmente
   /**
    * load css
    */ 
-  $a->page['htmlhead'] .= '<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.css" />' . "\r\n";
+  $a->page['htmlhead'] .= '<link rel="stylesheet" href="'.$a->get_baseurl().'/addon/mapasus/leaflet/leaflet.css" />' . "\r\n";
   $a->page['htmlhead'] .= '<link rel="stylesheet" href="'.$a->get_baseurl().'/addon/mapasus/mapasus.css" type="text/css" media="screen" />' . "\r\n";
   /**
    * load js
    */ 
-  $a->page['htmlhead'] .= '<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>' . "\r\n";
+  $a->page['htmlhead'] .= '<script src="'.$a->get_baseurl().'/addon/mapasus/leaflet/leaflet.js"></script>' . "\r\n";
   $a->page['htmlhead'] .= '<script src="'.$a->get_baseurl().'/addon/mapasus/mapasus.js"></script>' . "\r\n";
 
   $tpl = get_markup_template('mapasus_mapa.tpl');
@@ -87,10 +87,11 @@ function _mapasus_getdata($text,$field){
 }
 
 function mapasus_channel_data($uid){
+  $sql_extra = item_permissions_sql($uid);
   $r = q("SELECT body, id, uid
           FROM item
           WHERE uid = %d AND
-          body like '%s';
+          body like '%s' $sql_extra
           ",
           intval($uid),
           dbesc("%[b]Coordenadas:[/b]%")
