@@ -70,7 +70,7 @@ function mapasus_content($a){
   $a->page['htmlhead'] .= '<script src="'.$a->get_baseurl().'/addon/mapasus/leaflet/leaflet.js"></script>' . "\r\n";
   $a->page['htmlhead'] .= '<script src="'.$a->get_baseurl().'/addon/mapasus/mapasus.js"></script>' . "\r\n";
 
-  $tpl = get_markup_template('mapasus_mapa.tpl');
+  $tpl = get_markup_template('mapasus_mapa.tpl','addon/mapasus/');
   $o = replace_macros($tpl,array(
     '$title' => t('Mapa de Internações')
   ));
