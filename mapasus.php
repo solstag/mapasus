@@ -88,10 +88,11 @@ function _mapasus_getdata($text,$field){
 
 function mapasus_channel_data($uid){
   $sql_extra = item_permissions_sql($uid);
-  $r = q("SELECT body, id, uid
+  $r = q("SELECT item.body, item.id, item.uid, term.term
           FROM item
-          WHERE uid = %d AND
-          body like '%s' $sql_extra
+          left join term on item.id=term.oid and term.term='ppsus-inc'
+          WHERE item.uid = %d AND
+          item.body like '%s' $sql_extra
           ",
           intval($uid),
           dbesc("%[b]Coordenadas:[/b]%")
@@ -103,6 +104,7 @@ function mapasus_channel_data($uid){
     $item['body'] = $row['body'];
     $item['uid'] = $row['uid'];
     $item['id'] = $row['id'];
+    $item['term']= $row['term'];
     $coords = _mapasus_getdata($item['body'],"[b]Coordenadas:[/b]");
     if($coords!="Falha na geocodificação. Corrija o endereço e remova esta linha."){
       $aux=explode(",",$coords);
@@ -209,7 +211,7 @@ function mapasus_geocode($id){
     $idx2 = strpos($item['body'],"[b]CEP:[/b]"); // insere as coords depois do cep
     $idx2 = strpos($item['body'],"\n",$idx2); // primeira quebra de linha após o cep
     $item['body'] = substr_replace($item['body'], "[b]Coordenadas:[/b] ".$coords."\r\n", $idx2+1, 0);
-    item_store_update($item);
+//    item_store_update($item);
   }
   return $geocode->status;
 }
