@@ -72,7 +72,8 @@ function mapasus_content($a){
 
   $tpl = get_markup_template('mapasus_mapa.tpl','addon/mapasus/');
   $o = replace_macros($tpl,array(
-    '$title' => t('Mapa de Internações')
+    '$title' => t('Mapa de Internações'),
+    '$subtitle' => t('Pontos vermelhos foram incluídos na pesquisa PPSUS')
   ));
 
   return $o;
@@ -188,10 +189,11 @@ function mapasus_geocode($id){
 
   logger('mapasus geocoding: '.$item['id'], LOGGER_DEBUG);
 
-//     $zip = _mapasus_getdata($item['body'],"[b]CEP:[/b]");
+  $postal_code = _mapasus_getdata($item['body'],"[b]CEP:[/b]");
   $addr=array(
     'address'=>_mapasus_getdata($item['body'],"[b]Endereço:[/b]"),
-    'components'=>'country:BR|administrative_area:SP|locality:São Paulo',
+    'components'=>'country:BR|administrative_area:SP|locality:São Paulo'
+                  . ($postal_code != '' ? '|postal_code:'.$postal_code : '' ),
     'key'=>''
   );
   $jsonurl = "https://maps.googleapis.com/maps/api/geocode/json?".http_build_query($addr);
