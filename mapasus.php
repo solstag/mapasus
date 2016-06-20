@@ -63,17 +63,34 @@ function mapasus_content($a){
    * load css
    */ 
   $a->page['htmlhead'] .= '<link rel="stylesheet" href="'.$a->get_baseurl().'/addon/mapasus/leaflet/leaflet.css" />' . "\r\n";
+  $a->page['htmlhead'] .= '<link rel="stylesheet" href="'.$a->get_baseurl().'/addon/mapasus/wColorPicker/wColorPicker.min.css" />' . "\r\n";
   $a->page['htmlhead'] .= '<link rel="stylesheet" href="'.$a->get_baseurl().'/addon/mapasus/mapasus.css" type="text/css" media="screen" />' . "\r\n";
   /**
    * load js
    */ 
+  $a->page['htmlhead'] .= '<script src="'.$a->get_baseurl().'/addon/mapasus/jquery.collapsible-v.2.1.3.js"></script>' . "\r\n";
   $a->page['htmlhead'] .= '<script src="'.$a->get_baseurl().'/addon/mapasus/leaflet/leaflet.js"></script>' . "\r\n";
+  $a->page['htmlhead'] .= '<script src="'.$a->get_baseurl().'/addon/mapasus/Leaflet.heat/dist/leaflet-heat.js"></script>' . "\r\n";
+  $a->page['htmlhead'] .= '<script src="'.$a->get_baseurl().'/addon/mapasus/wColorPicker/wColorPicker.min.js"></script>' . "\r\n";
   $a->page['htmlhead'] .= '<script src="'.$a->get_baseurl().'/addon/mapasus/mapasus.js"></script>' . "\r\n";
 
   $tpl = get_markup_template('mapasus_mapa.tpl','addon/mapasus/');
+  
+  
+  $tz = date_default_timezone_get();
+  $year = datetime_convert('UTC', $tz, 'now', 'Y'); // ano atual, talvez usar time zone seja preciosismo
+  $f = get_config('system','event_input_format'); // algo como 'ymd' or 'mdy', mas na realidade nao tem suporte
+
+  // TODO: colocar as strings aqui e traduzir
   $o = replace_macros($tpl,array(
     '$title' => t('Mapa de Internações'),
-    '$subtitle' => t('Pontos vermelhos foram incluídos na pesquisa PPSUS')
+//     '$subtitle' => t('Pontos vermelhos foram incluídos na pesquisa PPSUS'),
+//     '$s_text' => t('Event Starts:'),
+//     '$s_dsel' => datetimesel($f,DateTime::createFromFormat('Y',$year-5),DateTime::createFromFormat('Y',$year+5),DateTime::createFromFormat('Y',$year-5),'s_dsel',true,false,'','',false),
+//     '$f_text' => t('Event Finishes:'),
+//     '$f_dsel' => datetimesel($f,DateTime::createFromFormat('Y',$year-5),DateTime::createFromFormat('Y',$year+5),DateTime::createFromFormat('Y',$year+5),'f_dsel',true,false,'s_dsel','',false),
+//     '$filter_text' => t('Filter'),
+//     '$add_text' => t('New layer')
   ));
 
   return $o;
@@ -88,8 +105,8 @@ function _mapasus_getdata($text,$field){
 }
 
 function mapasus_channel_data($uid){
-  $sql_extra = item_permissions_sql($uid);
-  $r = q("SELECT item.body, item.id, item.uid, term.term
+//   $sql_extra = item_permissions_sql($uid);
+  $r = q("SELECT item.body, item.id, item.uid, term.term, item.created, item.edited
           FROM item
           left join term on item.id=term.oid and term.term='ppsus-inc'
           WHERE item.uid = %d AND
@@ -106,6 +123,8 @@ function mapasus_channel_data($uid){
     $item['uid'] = $row['uid'];
     $item['id'] = $row['id'];
     $item['term']= $row['term'];
+    $item['created']= $row['created'];
+    $item['edited']= $row['edited'];
     $coords = _mapasus_getdata($item['body'],"[b]Coordenadas:[/b]");
     if($coords!="Falha na geocodificação. Corrija o endereço e remova esta linha."){
       $aux=explode(",",$coords);
@@ -114,6 +133,8 @@ function mapasus_channel_data($uid){
       $item['body']=bbcode($item['body']);
       $ret[]=$item;
     }else{
+      $item['lat']=0;
+      $item['lon']=0;
       logger('mapasus geocoding: failed', LOGGER_DEBUG);
     }
   }
@@ -140,6 +161,7 @@ function mapasus_channel_geocode($uid){
     if($status == "OVER_QUERY_LIMIT") {
       $delay += 200;
     }
+    echo $i.". ".$row['id'].": ".$status."\n<br>";
     usleep($delay);
   }
 }

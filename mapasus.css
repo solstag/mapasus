@@ -2,7 +2,7 @@
   height: 600px;
 }
 
-.blue-div-icon{
+/*.blue-div-icon{
   border-radius: 50%;
   background: blue;
   opacity: 0.5;
@@ -12,4 +12,75 @@
   border-radius: 50%;
   background: red;
   opacity: 0.5;
+}*/
+
+#layers .layer{
+  position:relative;
+}
+div.meta{
+  position:absolute;
+  top:10px;
+  right:10px;
+  border:1px solid #cccccc;
+  padding:10px;
+}
+button{
+  float:right;
+}
+.dsel{
+  width:100%;
+}
+
+.layer_field{
+  float:left;
+  margin: 0 10px 0 0;
+  
+}
+
+#layers label{
+  margin:0;
+}
+#layers input{
+  margin:0;
+  vertical-align: text-bottom;
+}
+
+.wcolorpicker{
+  display:block;
+  position: relative;
+  float:right;
+  width: 15px;
+  height: 15px;
+  margin: 2px 0 0 0;
+}
+
+fieldset, fieldset.collapsible {
+  padding: 5px;
+  border: 1px solid gray;
+  border-bottom-width: 1px;
+  border-left-width: 1px;
+  border-right-width: 1px;
+  margin-bottom: 1em;
+}
+fieldset.collapsed {
+  border-bottom-width: 0;
+  border-left-width: 0;
+  border-right-width: 0;
+  margin-bottom: 0;
+  margin-left: 3px;
+}
+fieldset legend{
+  cursor:pointer;
+  font-size:12px;
+  margin:0 5px 0 5px !important;
+  border:0 !important;
+  width:auto;
+  padding:0 5px 0 5px;
+}
+legend.collapsible {
+}
+legend.collapsed {
+}
+.row{
+  padding:5px 5px 5px 5px;
 }
