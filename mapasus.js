@@ -2,12 +2,7 @@ var MAP;
 var LAYERS_DOTS = [];
 var LAYERS_HEAT = [];
 var ITEMS = [];
-// var FILTER = [{
-//   ppsus_inc:undefined,
-//   s_dsel:0,
-//   s_dsel:'0000-00-00',
-//   f_dsel:'9999-99-99'
-// }];
+var TERMS = [];
 
 $(document).ready(function(){
   //centra no m'boi mirim
@@ -23,7 +18,8 @@ $(document).ready(function(){
                }
              ).addTo(MAP);
   loadData();
-
+  loadTerms();
+  
   $(".updateLayer").click(function(){
     var layer = $(this).parent();
     updateLayer(layer);
@@ -45,8 +41,15 @@ $(document).ready(function(){
       var layer = $(this).parent();
       updateLayer(layer);
     });
+    $('#layer_'+(num-1)+' .removeLayer').hide();
+    $(".removeLayer",nl).show();
+    $(".removeLayer",nl).click(function(){
+      var layer = $(this).parent();
+      removeLayer(layer);
+    });
   });
 
+  $('.removeLayer').hide();
   $(".wcolorpicker").each(setupColorpicker);
   $(".s_dsel").each(setupStartDatetimepicker);
   $(".f_dsel").each(setupFinishDatetimepicker);
@@ -55,12 +58,28 @@ $(document).ready(function(){
 
 });
 
+function loadTerms(){
+  $.getJSON( "/mapasus/terms", function( data ) {
+    TERMS = data;
+    $.each(TERMS, function(key, term) {
+      $('#layer_1 .terms_sel')
+          .append($(
+          '<select data-term='+term.term+' class="terms_sel_term">'+
+            '<option value="null" selected>Indiferente</option>'+
+            '<option value="true">Sim</option>'+
+            '<option value="false">Não</option>'+
+          '</select><span> '+term.term+'</span>'
+          ));
+    });
+  });
+}
+
 function loadData(){
   $.getJSON( "/mapasus/data", function( data ) {
     ITEMS = data;
     var total = updateLayer($("#layer_1"));
-    if (total>0)
-      MAP.fitBounds(LAYERS_DOTS[1].getBounds());
+//    if (total>0)
+//      MAP.fitBounds(LAYERS_DOTS[1].getBounds());
   });
 }
 
@@ -78,7 +97,7 @@ function setupColorpicker(idx){
   var that = this;
   $(this).wColorPicker({
     onSelect: function(color){
-      console.log($('#layer_'+$(that).data("num")).prop("tagName"))
+//       console.log($('#layer_'+$(that).data("num")).prop("tagName"))
       $('#layer_'+$(that).data("num")).data('color',color);
       $(this).css('background', color).val(color);
     },
@@ -90,6 +109,20 @@ function setupColorpicker(idx){
   });
 }
 
+function removeLayer(layer){
+  var layer_num=layer.data("num");
+  if(layer_num>=3){
+    $('#layer_'+(layer_num-1)+' .removeLayer').show();
+  }
+
+  if (layer_num in LAYERS_HEAT){
+    LAYERS_HEAT[layer_num].setLatLngs([]);
+  }
+  if (layer_num in LAYERS_DOTS){
+    LAYERS_DOTS[layer_num].clearLayers();
+  }
+  $(layer).remove();
+}
 
 function updateLayer(layer){
   var layer_num=layer.data("num");
@@ -129,20 +162,30 @@ function updateLayer(layer){
   //     $item['edited']= $row['edited'];
   var s_dsel = $('.s_dsel',layer).val();
   var f_dsel = $('.f_dsel',layer).val();
-  var ppsus_inc = $('.ppsus_inc',layer).val();
+//   var ppsus_inc = $('.ppsus_inc',layer).val();
+  var keyword = $('.keyword',layer).val();
 
   var total=0;
   for(var i = 0; i<ITEMS.length;i++){
     if(!ITEMS[i]) continue;
 
     var item = ITEMS[i];
-//     var diviconclass= (item.term=='ppsus-inc' ? 'red-div-icon' : 'blue-div-icon');
 
-    if(ppsus_inc=='true' && item.term!='ppsus-inc')
-      continue;
-    if(ppsus_inc=='false' && item.term=='ppsus-inc')
-      continue;
-//      console.log(s_dsel+" "+item.created+" "+((s_dsel !="" && item.created<s_dsel)))
+//     if(ppsus_inc=='true' && item.term!='ppsus-inc')
+//       continue;
+//     if(ppsus_inc=='false' && item.term=='ppsus-inc')
+//       continue;
+    var skip = false;
+    $('.terms_sel_term',layer).each(function(idx) {
+      var val = $(this).val();
+      var t = $(this).data("term");
+      if(val=='true' && item.terms.indexOf(t)==-1)
+        skip = true;
+      if(val=='false' && item.terms.indexOf(t)!=-1)
+        skip = true;
+    });
+    if(skip) continue;
+
     if((s_dsel !="" && item.created<s_dsel) || (f_dsel!="" && f_dsel<item.created))
       continue;
 
@@ -160,12 +203,10 @@ function updateLayer(layer){
 }
 
 function createMarker(layer_num,color,item){
-//     var marker = L.marker([item.lat, item.lon], {icon: L.divIcon({className: diviconclass})}).addTo(MAP);
-//     marker.bindPopup(item.body,{'maxHeight':100});
   var marker = L.circleMarker([item.lat, item.lon], {
     color: color,
     fillColor: color,
-    fillOpacity: 0.5
+    fillOpacity: 0.8 // changed from 0.5 to work over heatmap
   }).bindPopup(
     item.body, {maxWidth: 300, minWidth: 250, maxHeight: 300, autoPan: true, closeButton: true, autoPanPadding: [5, 5]}
   );

@@ -29,15 +29,15 @@ $title
         </div>
         <div class="col-md-9">
           <div class="layer_field">
-            <input type="radio" name="layer_1_type" value="heat"> <label for="heatmap">Mapa de Calor</label>
+            <input type="radio" name="layer_1_type" value="heat" checked> <label for="heatmap">Mapa de Calor</label>
           </div>
           <div class="layer_field">
-            <input type="radio" name="layer_1_type" value="dots" checked> <label for="markers">Pontos da cor:</label>
+            <input type="radio" name="layer_1_type" value="dots"> <label for="markers">Pontos da cor:</label>
             <div class="wcolorpicker" data-num="1"></div>
           </div>
         </div>
       </div>
-      <div class="row">
+<!--      <div class="row">
         <div class="col-md-12">
           <label>Participante do PPSUS:</label>
           <select class="ppsus_inc">
@@ -46,12 +46,26 @@ $title
             <option value="false">Não</option>
           </select>
         </div>
+      </div>-->
+      <div class="row">
+        <div class="col-md-12">
+          <label>Palavra-chave:</label>
+          <input type="text" class="keyword">
+        </div>
       </div>
-      <button type="button" class="updateLayer btn btn-default" aria-label="{{$filter_text}}">
+      <div class="row">
+        <div class="terms_sel col-md-12">
+          <label>Tags:</label>
+        </div>
+      </div>
+      <button type="button" class="updateLayer btn btn-default">
         <span class="glyphicon glyphicon-repeat" aria-hidden="true"></span>
       </button>
+      <button type="button" class="removeLayer btn btn-default">
+        <span class="glyphicon glyphicon-minus" aria-hidden="true"></span>
+      </button>
     </fieldset>
-    <button type="button" class="btn btn-default" aria-label="{{$add_text}}" id="newLayer">
+    <button type="button" class="btn btn-default" id="newLayer">
       <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
     </button>
   </fieldset>

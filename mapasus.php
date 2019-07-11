@@ -46,6 +46,10 @@ function mapasus_init($a){
     mapasus_channel_data($uid);
     killme();
   }
+  if(argv(1)==="terms"){
+    mapasus_channel_terms($uid);
+    killme();
+  }
 }
 
 // function mapasus_aside($a){}
@@ -104,11 +108,21 @@ function _mapasus_getdata($text,$field){
   return trim($val);
 }
 
+
+// SELECT DISTINCT term.term
+//           FROM item
+//           left join term on item.id=term.oid
+//           WHERE item.uid = 106 AND
+//           item.body like '%[b]Coordenadas:[/b]%' 
+          
+
 function mapasus_channel_data($uid){
-//   $sql_extra = item_permissions_sql($uid);
-  $r = q("SELECT item.body, item.id, item.uid, term.term, item.created, item.edited
+//   ini_set ("zlib.output_compression","On");
+  $sql_extra = item_permissions_sql($uid);
+//term.term, 
+//           left join term on item.id=term.oid and term.term='ppsus-inc'
+  $r = q("SELECT item.body, item.id, item.uid, item.created, item.edited
           FROM item
-          left join term on item.id=term.oid and term.term='ppsus-inc'
           WHERE item.uid = %d AND
           item.body like '%s' $sql_extra
           ",
@@ -122,9 +136,16 @@ function mapasus_channel_data($uid){
     $item['body'] = $row['body'];
     $item['uid'] = $row['uid'];
     $item['id'] = $row['id'];
-    $item['term']= $row['term'];
+//     $item['term']= $row['term'];
     $item['created']= $row['created'];
     $item['edited']= $row['edited'];
+
+    $item['terms']= array();
+    $s = q("SELECT term FROM term WHERE term.oid = %d",intval($item['id']));
+    foreach($s as $j=>$term){
+      $item['terms'][] = $term['term'];
+    }
+
     $coords = _mapasus_getdata($item['body'],"[b]Coordenadas:[/b]");
     if($coords!="Falha na geocodificação. Corrija o endereço e remova esta linha."){
       $aux=explode(",",$coords);
@@ -132,14 +153,34 @@ function mapasus_channel_data($uid){
       $item['lon']=$aux[1];
       $item['body']=bbcode($item['body']);
       $ret[]=$item;
-    }else{
-      $item['lat']=0;
-      $item['lon']=0;
-      logger('mapasus geocoding: failed', LOGGER_DEBUG);
+//     }else{
+//       $item['lat']=0;
+//       $item['lon']=0;
+//       logger('mapasus geocoding: failed', LOGGER_DEBUG);
     }
   }
   echo json_encode($ret);
 }
+
+function mapasus_channel_terms($uid){
+  $sql_extra = item_permissions_sql($uid);
+  $r = q("SELECT DISTINCT term.term
+          FROM item
+          left join term on item.id=term.oid
+          WHERE item.uid = %d AND
+          item.body like '%s' AND
+          term.term like '%s'
+          $sql_extra
+          ",
+          intval($uid),
+          dbesc("%[b]Coordenadas:[/b]%"),
+          dbesc("ppsus%")
+        );
+
+  echo json_encode($r);
+}
+
+
 
 function mapasus_channel_geocode($uid){
   $delay=200;
@@ -220,6 +261,8 @@ function mapasus_geocode($id){
   );
   $jsonurl = "https://maps.googleapis.com/maps/api/geocode/json?".http_build_query($addr);
   $geocode = json_decode(file_get_contents($jsonurl));
+  echo "count($geocode->results): ".count($geocode->results)."\n<br>";
+  echo "$geocode->results[0]->types[0]: ".$geocode->results[0]->types[0]."\n<br>";
   if($geocode->status == "OK" && count($geocode->results)>0 && $geocode->results[0]->types[0]!='locality'){
     logger('mapasus geocoding: success for ' . var_export($addr['address'],true), LOGGER_DEBUG);
     $lat=$geocode->results[0]->geometry->location->lat;

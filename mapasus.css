@@ -29,6 +29,7 @@ button{
 }
 .dsel{
   width:100%;
+  max-width:200px;
 }
 
 .layer_field{
@@ -83,4 +84,7 @@ legend.collapsed {
 }
 .row{
   padding:5px 5px 5px 5px;
+}
+.terms_sel span{
+  margin-right:20px;
 }
